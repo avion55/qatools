@@ -20,6 +20,9 @@ class AlbumMenu:
         # Save button
         tk.Button(self.root, text="Save", command=self.save_packs, bg="blue", fg="white").pack(pady=10)
 
+        # Filter button
+        tk.Button(self.root, text="Filter", command=self.filter_packs, bg="orange", fg="white").pack(pady=10)
+
         # Back button
         tk.Button(self.root, text="Back", command=self.back_callback, bg="red", fg="white").pack(pady=10)
 
@@ -29,15 +32,109 @@ class AlbumMenu:
             try:
                 df = pd.read_excel(file_path)
                 if all(col in df.columns for col in ["Pack Key", "Draw Order", "Highest rarity type (Visual)", "Highest rarity amount (Visual)", "Sticker Type UI", "Pack UI"]):
-                    self.packs = df["Pack Key"].tolist()
+                    # Convert the entire DataFrame to a dictionary grouped by column names
+                    data_dict = {col: df[col].dropna().tolist() for col in df.columns}
+                    self.packs = data_dict["Pack Key"]  # Update self.packs with "Pack Key" values
+                    
+                    # Save the entire data dictionary to JSON
                     with open("packs.json", "w") as file:
-                        json.dump(self.packs, file, indent=4)
-                    print("Packs loaded successfully.")
+                        json.dump(data_dict, file, indent=4)
+                    
+                    print("Packs and data loaded successfully.")
                 else:
                     print("Invalid file format. Missing required columns.")
             except Exception as e:
                 print(f"Error reading file: {e}")
 
+    def filter_packs(self):
+        # Open a dialog to get filter criteria
+        filter_window = tk.Toplevel(self.root)
+        filter_window.title("Filter Packs")
+
+        tk.Label(filter_window, text="Select Column:").grid(row=0, column=0, padx=10, pady=5)
+        column_var = tk.StringVar(filter_window)
+        column_var.set("")  # Default value
+        columns = []  # Placeholder for dynamic column names
+
+        # Load column names dynamically from packs.json
+        try:
+            with open("packs.json", "r") as file:
+                packs_data = json.load(file)
+                columns = [col for col in packs_data.keys() if col != "Pack Key" and col != "global_pack_key"]  # Exclude "Pack Key" and "global_pack_key"
+        except Exception as e:
+            print(f"Error loading columns: {e}")
+
+        column_menu = tk.OptionMenu(filter_window, column_var, *columns)
+        column_menu.grid(row=0, column=1, padx=10, pady=5)
+
+        tk.Label(filter_window, text="Select Value:").grid(row=1, column=0, padx=10, pady=5)
+        value_var = tk.StringVar(filter_window)
+        value_menu = tk.OptionMenu(filter_window, value_var, "")  # Placeholder, will be updated dynamically
+        value_menu.grid(row=1, column=1, padx=10, pady=5)
+
+        def update_values(*args):
+            selected_column = column_var.get()
+            try:
+                # Load the packs.json file
+                with open("packs.json", "r") as file:
+                    packs_data = json.load(file)
+
+                # Extract unique values for the selected column, converting all values to strings
+                unique_values = list(set(str(value) for value in packs_data.get(selected_column, [])))
+                unique_values.sort()  # Sort for better usability
+
+                # Update the value menu
+                value_var.set("")  # Reset the selected value
+                menu = value_menu["menu"]
+                menu.delete(0, "end")
+                for value in unique_values:
+                    menu.add_command(label=value, command=lambda v=value: value_var.set(v))
+            except Exception as e:
+                print(f"Error updating values: {e}")
+
+        column_var.trace("w", update_values)  # Update values when column selection changes
+
+        def apply_filter():
+            selected_column = column_var.get()
+            selected_value = value_var.get()
+            try:
+                # Load the packs.json file
+                with open("packs.json", "r") as file:
+                    packs_data = json.load(file)
+
+                # Ensure the selected column exists in the data
+                if selected_column not in packs_data:
+                    print(f"Column '{selected_column}' not found in data.")
+                    return
+
+                # Filter the Pack Key values based on the selected column and value
+                filtered_packs = [
+                    packs_data["Pack Key"][i]
+                    for i in range(len(packs_data["Pack Key"]))
+                    if i < len(packs_data[selected_column]) and str(packs_data[selected_column][i]) == selected_value
+                ]
+
+                # Save the filtered Pack Key values under global_pack_key in the JSON file
+                packs_data["global_pack_key"] = filtered_packs
+                with open("packs.json", "w") as file:
+                    json.dump(packs_data, file, indent=4)
+
+                print(f"Filtered packs saved under 'global_pack_key': {filtered_packs}")
+                filter_window.destroy()
+            except Exception as e:
+                print(f"Error applying filter: {e}")
+
+        tk.Button(filter_window, text="Apply", command=apply_filter, bg="green", fg="white").grid(row=2, column=0, columnspan=2, pady=10)
+
     def save_packs(self):
-        # Placeholder for saving filtered packs logic
-        print("Save functionality not yet implemented.")
+        if self.packs:
+            try:
+                # Filter out NaN values before saving
+                valid_packs = [pack for pack in self.packs if pd.notna(pack)]
+                with open("filtered_packs.json", "w") as file:
+                    json.dump(valid_packs, file, indent=4)
+                print("Filtered packs saved successfully.")
+            except Exception as e:
+                print(f"Error saving packs: {e}")
+        else:
+            print("No packs to save. Please upload and filter packs first.")

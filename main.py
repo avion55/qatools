@@ -9,6 +9,7 @@ import json
 from syntaxes import SyntaxMenu
 from settings import SettingsMenu
 from album import AlbumMenu
+from resource_manager import ResourceManager
 
 class App:
     def __init__(self, root):
@@ -28,14 +29,30 @@ class App:
     def create_syntax_menu(self):
         syntax_menu = SyntaxMenu(self.root, self.create_main_menu)
         syntax_menu.show()
+        self.add_back_button()
 
     def create_settings_menu(self):
         settings_menu = SettingsMenu(self.root, self.create_main_menu)
         settings_menu.show()
+        self.add_back_button()
+        self.add_resource_manager_button()
+
+    def add_resource_manager_button(self):
+        resource_manager_button = tk.Button(self.root, text="Resource Manager", command=self.create_resource_manager, font=("Arial", 12), bg="lightgray")
+        resource_manager_button.place(x=10, y=50)
+
+    def create_resource_manager(self):
+        resource_manager = ResourceManager(self.root, self.create_settings_menu)
+        resource_manager.create_ui()
 
     def create_album_menu(self):
         album_menu = AlbumMenu(self.root, self.create_main_menu)
         album_menu.show()
+        self.add_back_button()
+
+    def add_back_button(self):
+        back_button = tk.Button(self.root, text="←", command=self.create_main_menu, font=("Arial", 12), bg="lightgray")
+        back_button.place(x=10, y=10)
 
     def create_main_menu(self):
         # Clear syntax menu buttons

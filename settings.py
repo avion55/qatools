@@ -11,13 +11,9 @@ class SettingsMenu:
             widget.destroy()
 
         # Create Settings Menu buttons
-        tk.Button(self.root, text="Back", command=self.back_callback, bg="blue", fg="white").pack(pady=20)
-
-        # Add Resource Manager button
-        tk.Button(self.root, text="Resource Manager", command=self.open_resource_manager, height=2).pack(pady=10)
+        tk.Button(self.root, text="←", command=self.back_callback, font=("Arial", 12), bg="lightgray").place(x=10, y=10)
 
     def open_resource_manager(self):
-        if not hasattr(self, 'resource_manager'):
-            from resource_manager import ResourceManager
-            self.resource_manager = ResourceManager(self.root, self.show)
-        self.resource_manager.create_ui()
+        from resource_manager import ResourceManager
+        resource_manager = ResourceManager(self.root, self.show)
+        resource_manager.create_ui()
