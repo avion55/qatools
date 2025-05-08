@@ -91,16 +91,19 @@ class SyntaxMenu:
 
     def generate_syntax(self):
         try:
+            # Load all enabled resources from resources.json
             resources = self.load_resources()
             if not resources:
                 raise ValueError("No enabled resources found in resources.json.")
 
+            # Load global pack keys from packs.json
             global_pack_keys = []
             if os.path.exists("packs.json"):
                 with open("packs.json") as f:
                     packs_data = json.load(f)
                     global_pack_keys = packs_data.get("global_pack_key", [])
 
+            # Load dynamic keys and chest keys from dynamic_manager.json
             dr_keys = []
             chest_keys = []
             if os.path.exists("dynamic_manager.json"):
@@ -112,11 +115,13 @@ class SyntaxMenu:
             if not chest_keys:
                 raise ValueError("No chest keys available. Please create a custom chest key first.")
 
-            selected_resources = random.sample(list(resources.keys()), k=min(2, len(resources)))
-            res_parts = [f"{res}:{random.randint(1, resources[res])}" for res in selected_resources]
+            # Include all enabled resources
+            res_parts = [f"{res}:{random.randint(1, resources[res])}" for res in resources.keys()]
 
+            # Select a random chest key
             chest_key = random.choice(chest_keys)
 
+            # Generate dynamic syntax if dynamic keys are available
             dr_syntax = ""
             if dr_keys:
                 dr_key = random.choice(dr_keys)
@@ -125,11 +130,13 @@ class SyntaxMenu:
                 dr_val = random.randint(1, resources.get(dr_key, 10))
                 dr_syntax = f"[dynamic({dr_key}:{dr_val})|{fallback}:{fallback_val}]"
 
+            # Generate sticker syntax if global pack keys are available
             sticker_syntax = ""
             if global_pack_keys:
                 sticker_pack_key = random.choice(global_pack_keys)
                 sticker_syntax = f"[sticker_pack:{sticker_pack_key}]"
 
+            # Combine all parts into the final syntax
             syntax_parts = res_parts
             if dr_syntax:
                 syntax_parts.append(dr_syntax)
@@ -138,17 +145,20 @@ class SyntaxMenu:
 
             full_syntax = f"chest:{chest_key}(" + "+".join(syntax_parts) + ")"
 
+            # Display the generated syntax
             self.text_display.config(state="normal")
             self.text_display.delete("1.0", "end")
             self.text_display.insert("end", full_syntax + "\n")
             self.text_display.config(state="disabled")
 
+            # Auto-copy the syntax if enabled
             if self.auto_copy:
                 self.root.clipboard_clear()
                 self.root.clipboard_append(full_syntax)
                 self.root.update()
 
         except Exception as e:
+            # Handle errors and display them in the text display
             self.text_display.config(state="normal")
             self.text_display.delete("1.0", "end")
             self.text_display.insert("end", f"Error: {e}\n")

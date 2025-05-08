@@ -1,7 +1,8 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 import json
 import pandas as pd
+import os
 from PIL import Image, ImageTk
 
 class AlbumMenu:
@@ -53,6 +54,11 @@ class AlbumMenu:
         self.style_button(filter_button)
         filter_button.pack(pady=10)
 
+        # Clear Global Pack Keys button
+        clear_button = tk.Button(self.root, text="Clear Global Pack Keys", command=self.clear_global_pack_keys)
+        self.style_button(clear_button)
+        clear_button.pack(pady=10)
+
         # Back button
         back_button = tk.Button(self.root, text="←", command=self.back_callback, font=("Arial", 12), bg="lightgray")
         back_button.place(x=10, y=10)
@@ -103,7 +109,7 @@ class AlbumMenu:
 
         tk.Label(filter_window, text="Select Value:").grid(row=1, column=0, padx=10, pady=5)
         value_var = tk.StringVar(filter_window)
-        value_menu = tk.OptionMenu(filter_window, value_var, "")  # Placeholder, will be updated dynamically
+        value_menu = tk.OptionMenu(value_var, "")  # Placeholder, will be updated dynamically
         value_menu.grid(row=1, column=1, padx=10, pady=5)
 
         def update_values(*args):
@@ -172,3 +178,19 @@ class AlbumMenu:
                 print(f"Error saving packs: {e}")
         else:
             print("No packs to save. Please upload and filter packs first.")
+
+    def clear_global_pack_keys(self):
+        try:
+            if os.path.exists("packs.json"):
+                with open("packs.json", "r+") as f:
+                    data = json.load(f)
+                    if "global_pack_key" in data:
+                        data["global_pack_key"] = []
+                        f.seek(0)
+                        json.dump(data, f, indent=4)
+                        f.truncate()
+                messagebox.showinfo("Success", "Global pack keys cleared successfully.")
+            else:
+                messagebox.showwarning("Warning", "packs.json file not found.")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
