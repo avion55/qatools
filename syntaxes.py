@@ -1,6 +1,7 @@
 import tkinter as tk
 import json
 import random
+import os
 
 class SyntaxMenu:
     def __init__(self, root, back_callback):
@@ -15,11 +16,11 @@ class SyntaxMenu:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        syntax1_button = tk.Button(self.root, text="Syntax 1", command=self.generate_syntax)
+        syntax1_button = tk.Button(self.root, text="Generate Random Chest", command=self.generate_syntax)
         self.style_button(syntax1_button)
         syntax1_button.pack(pady=10)
 
-        syntax2_button = tk.Button(self.root, text="Syntax 2")
+        syntax2_button = tk.Button(self.root, text="Generate DR Line", command=self.generate_dr_line)
         self.style_button(syntax2_button)
         syntax2_button.pack(pady=10)
 
@@ -49,50 +50,72 @@ class SyntaxMenu:
             if isinstance(widget, tk.Button) and "Auto-Copy" in widget.cget("text"):
                 widget.config(text=toggle_button_text)
 
-    def generate_syntax(self):
-        try:
-            # Load and filter resources based on checkbox_states
-            with open("resources.json") as f:
-                res_data = json.load(f)
+    def load_resources(self):
+        with open("resources.json") as f:
+            res_data = json.load(f)
+            checkbox_states = res_data.get("checkbox_states", {})
+            return {
+                res: res_data[res]
+                for res, enabled in checkbox_states.items()
+                if enabled and res in res_data
+            }
 
-                checkbox_states = res_data.get("checkbox_states", {})
-                resources = {
-                    res: res_data[res]
-                    for res, enabled in checkbox_states.items()
-                    if enabled and res in res_data
-                }
-
-            with open("packs.json") as f:
-                packs_data = json.load(f)
-                global_pack_keys = packs_data.get("global_pack_key", [])
-
+    def load_dynamic_keys(self):
+        dr_keys = []
+        if os.path.exists("dynamic_manager.json"):
             with open("dynamic_manager.json") as f:
                 dr_data = json.load(f)
                 dr_keys = dr_data.get("dr_custom_keys", [])
-                chest_keys = dr_data.get("chest_custom_keys", [])
+        return dr_keys
 
-            if not resources or not global_pack_keys or not dr_keys or not chest_keys:
-                raise ValueError("One or more required input lists are empty")
+    def generate_syntax(self):
+        try:
+            resources = self.load_resources()
+            if not resources:
+                raise ValueError("No enabled resources found in resources.json.")
 
-            # Choose 2 active resources
+            global_pack_keys = []
+            if os.path.exists("packs.json"):
+                with open("packs.json") as f:
+                    packs_data = json.load(f)
+                    global_pack_keys = packs_data.get("global_pack_key", [])
+
+            dr_keys = []
+            chest_keys = []
+            if os.path.exists("dynamic_manager.json"):
+                with open("dynamic_manager.json") as f:
+                    dr_data = json.load(f)
+                    dr_keys = dr_data.get("dr_custom_keys", [])
+                    chest_keys = dr_data.get("chest_custom_keys", [])
+
+            if not chest_keys:
+                raise ValueError("No chest keys available. Please create a custom chest key first.")
+
             selected_resources = random.sample(list(resources.keys()), k=min(2, len(resources)))
-            res_parts = [
-                f"{res}:{random.randint(1, resources[res])}" for res in selected_resources
-            ]
+            res_parts = [f"{res}:{random.randint(1, resources[res])}" for res in selected_resources]
 
-            # Keys
             chest_key = random.choice(chest_keys)
-            dr_key = random.choice(dr_keys)
-            sticker_pack_key = random.choice(global_pack_keys)
-            fallback = random.choice(list(resources.keys()))
-            fallback_val = random.randint(1, resources[fallback])
-            dr_val = random.randint(1, resources[dr_key]) if dr_key in resources else random.randint(1, 10)
 
-            # Syntax lines
-            dr_syntax = f"[dynamic({dr_key}:{dr_val})|{fallback}:{fallback_val}]"
-            sticker_syntax = f"[sticker_pack:{sticker_pack_key}]"
+            dr_syntax = ""
+            if dr_keys:
+                dr_key = random.choice(dr_keys)
+                fallback = random.choice(list(resources.keys()))
+                fallback_val = random.randint(1, resources[fallback])
+                dr_val = random.randint(1, resources.get(dr_key, 10))
+                dr_syntax = f"[dynamic({dr_key}:{dr_val})|{fallback}:{fallback_val}]"
 
-            full_syntax = f"chest:{chest_key}(" + "+".join(res_parts + [dr_syntax, sticker_syntax]) + ")"
+            sticker_syntax = ""
+            if global_pack_keys:
+                sticker_pack_key = random.choice(global_pack_keys)
+                sticker_syntax = f"[sticker_pack:{sticker_pack_key}]"
+
+            syntax_parts = res_parts
+            if dr_syntax:
+                syntax_parts.append(dr_syntax)
+            if sticker_syntax:
+                syntax_parts.append(sticker_syntax)
+
+            full_syntax = f"chest:{chest_key}(" + "+".join(syntax_parts) + ")"
 
             self.text_display.config(state="normal")
             self.text_display.delete("1.0", "end")
@@ -102,6 +125,47 @@ class SyntaxMenu:
             if self.auto_copy:
                 self.root.clipboard_clear()
                 self.root.clipboard_append(full_syntax)
+                self.root.update()
+
+        except Exception as e:
+            self.text_display.config(state="normal")
+            self.text_display.delete("1.0", "end")
+            self.text_display.insert("end", f"Error: {e}\n")
+            self.text_display.config(state="disabled")
+
+    def generate_dr_line(self):
+        try:
+            resources = self.load_resources()
+            if not resources:
+                raise ValueError("No enabled resources found in resources.json.")
+
+            dr_keys = self.load_dynamic_keys()
+
+            output_parts = []
+
+            if dr_keys:
+                dr_key = random.choice(dr_keys)
+                fallback = random.choice(list(resources.keys()))
+                fallback_val = random.randint(1, resources[fallback])
+                dr_val = random.randint(1, resources.get(dr_key, 10))
+                dr_syntax = f"[dynamic({dr_key}:{dr_val})|{fallback}:{fallback_val}]"
+                output_parts.append(dr_syntax)
+
+            # Add all available resources
+            for res, max_val in resources.items():
+                val = random.randint(1, max_val)
+                output_parts.append(f"{res}:{val}")
+
+            full_line = "+".join(output_parts)
+
+            self.text_display.config(state="normal")
+            self.text_display.delete("1.0", "end")
+            self.text_display.insert("end", full_line + "\n")
+            self.text_display.config(state="disabled")
+
+            if self.auto_copy:
+                self.root.clipboard_clear()
+                self.root.clipboard_append(full_line)
                 self.root.update()
 
         except Exception as e:

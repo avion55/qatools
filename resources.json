@@ -1,9 +1,9 @@
 {
-    "free_wild": 100,
-    "free_undo": 100,
-    "free_stock": 100,
-    "free_entry": 100,
-    "coins": 726191,
+    "free_wild": 23,
+    "free_undo": 33,
+    "free_stock": 12,
+    "free_entry": 30,
+    "coins": 261906,
     "checkbox_states": {
         "free_wild": true,
         "free_undo": true,
