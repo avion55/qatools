@@ -9,22 +9,32 @@ class AlbumMenu:
         self.back_callback = back_callback
         self.packs = []
 
+    def style_button(self, button):
+        button.config(width=20, height=2, bg="lightblue", activebackground="blue", fg="black")
+
     def show(self):
         # Clear current widgets
         for widget in self.root.winfo_children():
             widget.destroy()
 
         # Upload button
-        tk.Button(self.root, text="Upload", command=self.upload_file, bg="green", fg="white").pack(pady=10)
+        upload_button = tk.Button(self.root, text="Upload", command=self.upload_file)
+        self.style_button(upload_button)
+        upload_button.pack(pady=10)
 
         # Save button
-        tk.Button(self.root, text="Save", command=self.save_packs, bg="blue", fg="white").pack(pady=10)
+        save_button = tk.Button(self.root, text="Save", command=self.save_packs)
+        self.style_button(save_button)
+        save_button.pack(pady=10)
 
         # Filter button
-        tk.Button(self.root, text="Filter", command=self.filter_packs, bg="orange", fg="white").pack(pady=10)
+        filter_button = tk.Button(self.root, text="Filter", command=self.filter_packs)
+        self.style_button(filter_button)
+        filter_button.pack(pady=10)
 
         # Back button
-        tk.Button(self.root, text="Back", command=self.back_callback, bg="red", fg="white").pack(pady=10)
+        back_button = tk.Button(self.root, text="←", command=self.back_callback, font=("Arial", 12), bg="lightgray")
+        back_button.place(x=10, y=10)
 
     def upload_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])

@@ -26,6 +26,17 @@ class App:
         # Override close event
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+    def set_background(self):
+        # Set a solid background color using yellow and pink stripes
+        canvas = tk.Canvas(self.root, width=360, height=640, highlightthickness=0)
+        canvas.pack(fill="both", expand=True)
+
+        for i in range(0, 640, 40):
+            color = "pink" if i % 80 == 0 else "yellow"
+            canvas.create_rectangle(0, i, 360, i + 40, fill=color, outline="")
+
+        return canvas
+
     def create_syntax_menu(self):
         syntax_menu = SyntaxMenu(self.root, self.create_main_menu)
         syntax_menu.show()
@@ -35,11 +46,6 @@ class App:
         settings_menu = SettingsMenu(self.root, self.create_main_menu)
         settings_menu.show()
         self.add_back_button()
-        self.add_resource_manager_button()
-
-    def add_resource_manager_button(self):
-        resource_manager_button = tk.Button(self.root, text="Resource Manager", command=self.create_resource_manager, font=("Arial", 12), bg="lightgray")
-        resource_manager_button.place(x=10, y=50)
 
     def create_resource_manager(self):
         resource_manager = ResourceManager(self.root, self.create_settings_menu)
@@ -59,14 +65,29 @@ class App:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        # Recreate main menu buttons
+        # Recreate buttons
         self.create_buttons()
 
+    def style_button(self, button):
+        button.config(width=20, height=2, bg="lightblue", activebackground="blue", fg="black")
+
     def create_buttons(self):
-        tk.Button(self.root, text="Syntax Menu", command=self.create_syntax_menu, height=2).pack(pady=10)
-        tk.Button(self.root, text="Settings", command=self.create_settings_menu, height=2).pack(pady=10)
-        tk.Button(self.root, text="Album", command=self.create_album_menu, height=2).pack(pady=10)
-        tk.Button(self.root, text="Quit", command=self.quit_app, bg="red", fg="white").pack(pady=20)
+        syntax_button = tk.Button(self.root, text="Syntax Menu", command=self.create_syntax_menu)
+        self.style_button(syntax_button)
+        syntax_button.pack(pady=10)
+
+        settings_button = tk.Button(self.root, text="Settings", command=self.create_settings_menu)
+        self.style_button(settings_button)
+        settings_button.pack(pady=10)
+
+        album_button = tk.Button(self.root, text="Album", command=self.create_album_menu)
+        self.style_button(album_button)
+        album_button.pack(pady=10)
+
+        quit_button = tk.Button(self.root, text="Quit", command=self.quit_app)
+        self.style_button(quit_button)
+        quit_button.config(bg="red", fg="white")
+        quit_button.pack(pady=20)
 
     def on_closing(self):
         self.hide_window()
