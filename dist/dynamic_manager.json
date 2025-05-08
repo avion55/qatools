@@ -1,0 +1,12 @@
+{
+    "chest_custom_keys": [
+        "silver",
+        "golden",
+        "brown"
+    ],
+    "dr_custom_keys": [
+        "dr-puzzle",
+        "dr-tea-time",
+        "dr-whatever"
+    ]
+}

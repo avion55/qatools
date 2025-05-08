@@ -109,7 +109,7 @@ class AlbumMenu:
 
         tk.Label(filter_window, text="Select Value:").grid(row=1, column=0, padx=10, pady=5)
         value_var = tk.StringVar(filter_window)
-        value_menu = tk.OptionMenu(value_var, "")  # Placeholder, will be updated dynamically
+        value_menu = tk.OptionMenu(filter_window, value_var, "")  # Placeholder, will be updated dynamically
         value_menu.grid(row=1, column=1, padx=10, pady=5)
 
         def update_values(*args):

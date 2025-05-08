@@ -172,6 +172,13 @@ class SyntaxMenu:
 
             dr_keys = self.load_dynamic_keys()
 
+            # Load global pack keys from packs.json
+            global_pack_keys = []
+            if os.path.exists("packs.json"):
+                with open("packs.json") as f:
+                    packs_data = json.load(f)
+                    global_pack_keys = packs_data.get("global_pack_key", [])
+
             output_parts = []
 
             if dr_keys:
@@ -186,6 +193,12 @@ class SyntaxMenu:
             for res, max_val in resources.items():
                 val = random.randint(1, max_val)
                 output_parts.append(f"{res}:{val}")
+
+            # Add a random sticker pack if available
+            if global_pack_keys:
+                sticker_pack_key = random.choice(global_pack_keys)
+                sticker_syntax = f"[sticker_pack:{sticker_pack_key}]"
+                output_parts.append(sticker_syntax)
 
             full_line = "+".join(output_parts)
 
