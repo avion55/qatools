@@ -5,7 +5,10 @@ import pystray
 from pynput import keyboard
 import threading
 import sys
+import json
 from syntaxes import SyntaxMenu
+from settings import SettingsMenu
+from album import AlbumMenu
 
 class App:
     def __init__(self, root):
@@ -23,14 +26,16 @@ class App:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def create_syntax_menu(self):
-        # Clear main menu buttons
-        for widget in self.root.winfo_children():
-            widget.destroy()
+        syntax_menu = SyntaxMenu(self.root, self.create_main_menu)
+        syntax_menu.show()
 
-        # Create Syntax Menu buttons
-        tk.Button(self.root, text="Syntax 1", height=2).pack(pady=10)
-        tk.Button(self.root, text="Syntax 2", height=2).pack(pady=10)
-        tk.Button(self.root, text="Back", command=self.create_main_menu, bg="blue", fg="white").pack(pady=20)
+    def create_settings_menu(self):
+        settings_menu = SettingsMenu(self.root, self.create_main_menu)
+        settings_menu.show()
+
+    def create_album_menu(self):
+        album_menu = AlbumMenu(self.root, self.create_main_menu)
+        album_menu.show()
 
     def create_main_menu(self):
         # Clear syntax menu buttons
@@ -42,6 +47,8 @@ class App:
 
     def create_buttons(self):
         tk.Button(self.root, text="Syntax Menu", command=self.create_syntax_menu, height=2).pack(pady=10)
+        tk.Button(self.root, text="Settings", command=self.create_settings_menu, height=2).pack(pady=10)
+        tk.Button(self.root, text="Album", command=self.create_album_menu, height=2).pack(pady=10)
         tk.Button(self.root, text="Quit", command=self.quit_app, bg="red", fg="white").pack(pady=20)
 
     def on_closing(self):
