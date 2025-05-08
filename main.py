@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageTk
 import pystray
 from pynput import keyboard
 import threading
@@ -20,6 +20,9 @@ class App:
 
         self.is_hidden = False
 
+        # Set the background image
+        self.set_background()
+
         self.create_main_menu()
         self.register_hotkey()
 
@@ -27,15 +30,55 @@ class App:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def set_background(self):
-        # Set a solid background color using yellow and pink stripes
-        canvas = tk.Canvas(self.root, width=360, height=640, highlightthickness=0)
-        canvas.pack(fill="both", expand=True)
+        try:
+            bg_image = tk.PhotoImage(file="bg.png")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load background image: {e}")
+            return None
 
-        for i in range(0, 640, 40):
-            color = "pink" if i % 80 == 0 else "yellow"
-            canvas.create_rectangle(0, i, 360, i + 40, fill=color, outline="")
+        # Debugging: Check if the image is loaded
+        if bg_image.width() == 0 or bg_image.height() == 0:
+            print("Debug: Background image failed to load or is empty.")
+        else:
+            print(f"Debug: Background image loaded with size {bg_image.width()}x{bg_image.height()}.")
 
-        return canvas
+        # Resize the window to match the background image dimensions
+        self.root.geometry(f"{bg_image.width()}x{bg_image.height()}")
+
+        # Restore the original window size
+        self.root.geometry("360x640")
+
+        # Create a label to hold the background image
+        bg_label = tk.Label(self.root, image=bg_image)
+        bg_label.image = bg_image  # Keep a reference to avoid garbage collection
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)  # Stretch to fill the window
+
+        # Load and resize the background image using PIL
+        original_image = Image.open("bg.png")
+        resized_image = original_image.resize((self.root.winfo_width(), self.root.winfo_height()), Image.Resampling.LANCZOS)
+        bg_image = ImageTk.PhotoImage(resized_image)
+
+        # Update the label with the resized image
+        bg_label.config(image=bg_image)
+        bg_label.image = bg_image  # Keep a reference to avoid garbage collection
+
+        # Lower the background label to ensure it stays at the bottom
+        bg_label.lower()
+
+        # Force a redraw of the UI to ensure the background is visible
+        self.root.update()
+
+        # Schedule resizing after the window is fully initialized
+        self.root.after(100, self.resize_background, bg_label)
+
+        return bg_label
+
+    def resize_background(self, bg_label):
+        original_image = Image.open("bg.png")
+        resized_image = original_image.resize((self.root.winfo_width(), self.root.winfo_height()), Image.Resampling.LANCZOS)
+        bg_image = ImageTk.PhotoImage(resized_image)
+        bg_label.config(image=bg_image)
+        bg_label.image = bg_image  # Keep a reference to avoid garbage collection
 
     def create_syntax_menu(self):
         syntax_menu = SyntaxMenu(self.root, self.create_main_menu)
@@ -61,9 +104,10 @@ class App:
         back_button.place(x=10, y=10)
 
     def create_main_menu(self):
-        # Clear syntax menu buttons
+        # Ensure the background is not destroyed
         for widget in self.root.winfo_children():
-            widget.destroy()
+            if not isinstance(widget, tk.Label):  # Keep the background label
+                widget.destroy()
 
         # Recreate buttons
         self.create_buttons()
@@ -148,5 +192,7 @@ class App:
 
 if __name__ == "__main__":
     root = tk.Tk()
+    root.configure(bg="#e13974")  # Or the pink hex from your image
     app = App(root)
     root.mainloop()
+    

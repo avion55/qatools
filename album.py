@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 import json
 import pandas as pd
+from PIL import Image, ImageTk
 
 class AlbumMenu:
     def __init__(self, root, back_callback):
@@ -13,9 +14,29 @@ class AlbumMenu:
         button.config(width=20, height=2, bg="lightblue", activebackground="blue", fg="black")
 
     def show(self):
-        # Clear current widgets
+        # Set the background for the album menu
+        bg_image = Image.open("bg.png")
+        resized_image = bg_image.resize((self.root.winfo_width(), self.root.winfo_height()), Image.Resampling.LANCZOS)
+        bg_image_tk = ImageTk.PhotoImage(resized_image)
+
+        # Store the background image as an instance variable to prevent garbage collection
+        self.bg_image_tk = bg_image_tk
+
+        bg_label = tk.Label(self.root, image=bg_image_tk)
+        bg_label.image = bg_image_tk  # Keep a reference to avoid garbage collection
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        bg_label.lower()  # Ensure the background label is always at the bottom
+
+        # Ensure the background label is not removed
         for widget in self.root.winfo_children():
-            widget.destroy()
+            if not isinstance(widget, tk.Label):  # Keep the background label
+                widget.destroy()
+
+        # Force a redraw of the UI to ensure the background is visible
+        self.root.update()
+
+        # Schedule resizing after the window is fully initialized
+        self.root.after(100, self.resize_background, bg_label)
 
         # Upload button
         upload_button = tk.Button(self.root, text="Upload", command=self.upload_file)
@@ -35,6 +56,9 @@ class AlbumMenu:
         # Back button
         back_button = tk.Button(self.root, text="←", command=self.back_callback, font=("Arial", 12), bg="lightgray")
         back_button.place(x=10, y=10)
+
+    def resize_background(self, bg_label):
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
     def upload_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
