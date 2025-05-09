@@ -11,12 +11,22 @@ from syntaxes import SyntaxMenu
 from settings import SettingsMenu
 from album import AlbumMenu
 from resource_manager import ResourceManager
+from random_menu import RandomMenu
 
 class App:
     def __init__(self, root):
         self.root = root
         self.root.title("SuperTools Alpha")
-        self.root.geometry("360x640")  # Smartphone size
+
+        # Center the window on the screen
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        window_width = 360
+        window_height = 640
+        x = (screen_width // 2) - (window_width // 2)
+        y = (screen_height // 2) - (window_height // 2)
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
         self.root.resizable(False, False)  # Make it un-resizable
 
         # Set the application icon
@@ -108,6 +118,17 @@ class App:
         custom_strings_menu = CustomStringsMenu(self.root, self.create_main_menu)
         custom_strings_menu.show()
 
+    def create_random_menu(self):
+        # Destroy all widgets in the main menu
+        for widget in self.root.winfo_children():
+            if not isinstance(widget, tk.Label):  # Keep the background label
+                widget.destroy()
+
+        # Show the Random Menu
+        from random_menu import RandomMenu
+        random_menu = RandomMenu(self.root, self.create_main_menu)
+        random_menu.show()
+
     def add_back_button(self):
         if os.path.exists("left-arrow.png"):
             original_image = Image.open("left-arrow.png")
@@ -147,6 +168,10 @@ class App:
         custom_strings_button = tk.Button(self.root, text="Custom Strings", command=self.create_custom_strings_menu)
         self.style_button(custom_strings_button)
         custom_strings_button.pack(pady=10)
+
+        random_menu_button = tk.Button(self.root, text="Random Menu", command=self.create_random_menu)
+        self.style_button(random_menu_button)
+        random_menu_button.pack(pady=10)
 
         quit_button = tk.Button(self.root, text="Quit", command=self.quit_app)
         self.style_button(quit_button)

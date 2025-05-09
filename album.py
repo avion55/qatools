@@ -98,6 +98,33 @@ class AlbumMenu:
         filter_window = tk.Toplevel(self.root)
         filter_window.title("Filter Packs")
 
+        # Disable the main app while the filter window is open
+        self.root.attributes("-disabled", True)
+
+        def on_close():
+            # Re-enable the main app when the filter window is closed
+            self.root.attributes("-disabled", False)
+            filter_window.destroy()
+
+        filter_window.protocol("WM_DELETE_WINDOW", on_close)
+
+        # Set the background for the filter window
+        if os.path.exists("bg.png"):
+            bg_image = tk.PhotoImage(file="bg.png")
+            bg_label = tk.Label(filter_window, image=bg_image)
+            bg_label.image = bg_image  # Keep a reference to avoid garbage collection
+            bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        else:
+            print("Error: bg.png file not found.")
+
+        # Set the size and position of the filter window
+        filter_window.geometry("250x145")  # Set a smaller size
+        filter_window.resizable(False, False)  # Make the window un-resizable
+        filter_window.update_idletasks()
+        x = (self.root.winfo_screenwidth() // 2) - (filter_window.winfo_width() // 2)
+        y = (self.root.winfo_screenheight() // 2) - (filter_window.winfo_height() // 2)
+        filter_window.geometry(f"250x145+{x}+{y}")
+
         tk.Label(filter_window, text="Select Column:").grid(row=0, column=0, padx=10, pady=5)
         column_var = tk.StringVar(filter_window)
         column_var.set("")  # Default value
@@ -111,13 +138,20 @@ class AlbumMenu:
         except Exception as e:
             print(f"Error loading columns: {e}")
 
+
+        # Column Menu
         column_menu = tk.OptionMenu(filter_window, column_var, *columns)
+        column_menu.config(width=10)  # Set a fixed width
         column_menu.grid(row=0, column=1, padx=10, pady=5)
 
         tk.Label(filter_window, text="Select Value:").grid(row=1, column=0, padx=10, pady=5)
         value_var = tk.StringVar(filter_window)
-        value_menu = tk.OptionMenu(filter_window, value_var, "")  # Placeholder, will be updated dynamically
+        
+        # Value Menu
+        value_menu = tk.OptionMenu(filter_window, value_var, "")
+        value_menu.config(width=10)  # Set a fixed width
         value_menu.grid(row=1, column=1, padx=10, pady=5)
+
 
         def update_values(*args):
             selected_column = column_var.get()
@@ -167,7 +201,7 @@ class AlbumMenu:
                     json.dump(packs_data, file, indent=4)
 
                 print(f"Filtered packs saved under 'global_pack_key': {filtered_packs}")
-                filter_window.destroy()
+                on_close()
             except Exception as e:
                 print(f"Error applying filter: {e}")
 
