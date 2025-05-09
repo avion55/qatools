@@ -56,8 +56,23 @@ class SyntaxMenu:
         self.style_button(toggle_button)
         toggle_button.pack(pady=5)
 
-        back_button = tk.Button(self.root, text="←", command=self.back_callback, font=("Arial", 12), bg="lightgray")
-        back_button.place(x=10, y=10)
+        # Check if the image file exists
+        if not os.path.exists("left-arrow.png"):
+            print("Error: left-arrow.png file not found.")
+        else:
+            try:
+                # Resize the image to fit the button size
+                original_image = Image.open("left-arrow.png")
+                resized_image = original_image.resize((20, 20), Image.Resampling.LANCZOS)
+                back_arrow_image = ImageTk.PhotoImage(resized_image)
+
+                # Create the back button with the resized image
+                back_button = tk.Button(self.root, image=back_arrow_image, command=self.back_callback, bg="lightgray")
+                back_button.image = back_arrow_image  # Keep a reference to avoid garbage collection
+                back_button.place(x=10, y=10)
+                print("Back arrow image loaded and applied successfully.")
+            except Exception as e:
+                print(f"Error loading back arrow image: {e}")
 
     def copy_text(self):
         self.root.clipboard_clear()

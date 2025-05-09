@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
+import os
 
 class CustomStringsMenu:
     def __init__(self, root, back_callback):
@@ -28,8 +29,15 @@ class CustomStringsMenu:
         bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Back button
-        back_button = tk.Button(self.root, text="←", command=self.back_callback, font=("Arial", 12), bg="lightgray")
-        back_button.place(x=10, y=10)
+        if os.path.exists("left-arrow.png"):
+            original_image = Image.open("left-arrow.png")
+            resized_image = original_image.resize((20, 20), Image.Resampling.LANCZOS)
+            back_arrow_image = ImageTk.PhotoImage(resized_image)
+            back_button = tk.Button(self.root, image=back_arrow_image, command=self.back_callback, bg="lightgray")
+            back_button.image = back_arrow_image  # Keep a reference to avoid garbage collection
+            back_button.place(x=10, y=10)
+        else:
+            print("Error: left-arrow.png file not found.")
 
         # Upload button
         upload_button = tk.Button(self.root, text="Upload TXT", command=self.upload_file, font=("Arial", 12), bg="lightblue")

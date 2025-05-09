@@ -6,6 +6,7 @@ from pynput import keyboard
 import threading
 import sys
 import json
+import os
 from syntaxes import SyntaxMenu
 from settings import SettingsMenu
 from album import AlbumMenu
@@ -108,8 +109,15 @@ class App:
         custom_strings_menu.show()
 
     def add_back_button(self):
-        back_button = tk.Button(self.root, text="←", command=self.create_main_menu, font=("Arial", 12), bg="lightgray")
-        back_button.place(x=10, y=10)
+        if os.path.exists("left-arrow.png"):
+            original_image = Image.open("left-arrow.png")
+            resized_image = original_image.resize((20, 20), Image.Resampling.LANCZOS)
+            back_arrow_image = ImageTk.PhotoImage(resized_image)
+            back_button = tk.Button(self.root, image=back_arrow_image, command=self.create_main_menu, bg="lightgray")
+            back_button.image = back_arrow_image  # Keep a reference to avoid garbage collection
+            back_button.place(x=10, y=10)
+        else:
+            print("Error: left-arrow.png file not found.")
 
     def create_main_menu(self):
         # Ensure the background is not destroyed

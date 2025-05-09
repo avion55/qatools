@@ -1,5 +1,6 @@
 import tkinter as tk
 import json
+import os
 from PIL import Image, ImageTk
 
 class SettingsMenu:
@@ -36,8 +37,15 @@ class SettingsMenu:
         self.root.after(100, self.resize_background, bg_label)
 
         # Create Settings Menu buttons
-        back_button = tk.Button(self.root, text="←", command=self.back_callback, font=("Arial", 12), bg="lightgray")
-        back_button.place(x=10, y=10)
+        if os.path.exists("left-arrow.png"):
+            original_image = Image.open("left-arrow.png")
+            resized_image = original_image.resize((20, 20), Image.Resampling.LANCZOS)
+            back_arrow_image = ImageTk.PhotoImage(resized_image)
+            back_button = tk.Button(self.root, image=back_arrow_image, command=self.back_callback, bg="lightgray")
+            back_button.image = back_arrow_image  # Keep a reference to avoid garbage collection
+            back_button.place(x=10, y=10)
+        else:
+            print("Error: left-arrow.png file not found.")
 
         resource_manager_button = tk.Button(self.root, text="Resource Manager", command=self.open_resource_manager)
         self.style_button(resource_manager_button)
@@ -85,9 +93,15 @@ class DynamicManager:
             widget.destroy()
 
         # Back button at top-left
-        self.back_button = tk.Button(self.root, text="←", command=self.exit_dynamic_manager,
-                                     font=("Arial", 12), bg="lightgray", bd=0, highlightthickness=0)
-        self.back_button.place(x=10, y=10)
+        if os.path.exists("left-arrow.png"):
+            original_image = Image.open("left-arrow.png")
+            resized_image = original_image.resize((20, 20), Image.Resampling.LANCZOS)
+            back_arrow_image = ImageTk.PhotoImage(resized_image)
+            self.back_button = tk.Button(self.root, image=back_arrow_image, command=self.exit_dynamic_manager, bg="lightgray", bd=0, highlightthickness=0)
+            self.back_button.image = back_arrow_image  # Keep a reference to avoid garbage collection
+            self.back_button.place(x=10, y=10)
+        else:
+            print("Error: left-arrow.png file not found.")
 
         # Spacer to avoid overlap
         spacer = tk.Frame(self.root, height=60, bg=self.bg_color)
