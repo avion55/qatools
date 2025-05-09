@@ -21,7 +21,7 @@ missing module named urllib.urlopen - imported by urllib (delayed, optional), lx
 missing module named urllib.urlencode - imported by urllib (delayed, optional), lxml.html (delayed, optional)
 missing module named _frozen_importlib_external - imported by importlib._bootstrap (delayed), importlib (optional), importlib.abc (optional), zipimport (top-level)
 excluded module named _frozen_importlib - imported by importlib (optional), importlib.abc (optional), zipimport (top-level)
-excluded module named posix - imported by os (conditional, optional), shutil (conditional), importlib._bootstrap_external (conditional), posixpath (optional)
+excluded module named posix - imported by posixpath (optional), shutil (conditional), importlib._bootstrap_external (conditional), os (conditional, optional)
 missing module named pyimod02_importers - imported by C:\Users\wwwal\AppData\Local\packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\PyInstaller\hooks\rthooks\pyi_rth_pkgutil.py (delayed), C:\Users\wwwal\AppData\Local\packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\PyInstaller\hooks\rthooks\pyi_rth_pkgres.py (delayed)
 missing module named _posixsubprocess - imported by subprocess (conditional)
 excluded module named fcntl - imported by subprocess (optional), psutil._compat (delayed, optional), tqdm.utils (delayed, optional)
