@@ -1,14 +1,14 @@
 {
-    "free_wild": 89,
+    "free_wild": 10,
     "free_undo": 80,
     "free_stock": 91,
     "free_entry": 30,
     "coins": 747059,
     "checkbox_states": {
         "free_wild": true,
-        "free_undo": true,
-        "free_stock": true,
-        "free_entry": true,
+        "free_undo": false,
+        "free_stock": false,
+        "free_entry": false,
         "coins": true
     }
 }

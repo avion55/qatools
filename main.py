@@ -99,6 +99,11 @@ class App:
         album_menu.show()
         self.add_back_button()
 
+    def create_custom_strings_menu(self):
+        from custom_strings import CustomStringsMenu
+        custom_strings_menu = CustomStringsMenu(self.root, self.create_main_menu)
+        custom_strings_menu.show()
+
     def add_back_button(self):
         back_button = tk.Button(self.root, text="←", command=self.create_main_menu, font=("Arial", 12), bg="lightgray")
         back_button.place(x=10, y=10)
@@ -127,6 +132,10 @@ class App:
         album_button = tk.Button(self.root, text="Album", command=self.create_album_menu)
         self.style_button(album_button)
         album_button.pack(pady=10)
+
+        custom_strings_button = tk.Button(self.root, text="Custom Strings", command=self.create_custom_strings_menu)
+        self.style_button(custom_strings_button)
+        custom_strings_button.pack(pady=10)
 
         quit_button = tk.Button(self.root, text="Quit", command=self.quit_app)
         self.style_button(quit_button)
@@ -195,4 +204,4 @@ if __name__ == "__main__":
     root.configure(bg="#e13974")  # Or the pink hex from your image
     app = App(root)
     root.mainloop()
-    
+
