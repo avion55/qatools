@@ -1,7 +1,7 @@
 import tkinter as tk
 import json
 import os
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageStat  # Add this import for color analysis
 
 class SettingsMenu:
     def __init__(self, root, back_callback):
@@ -72,8 +72,19 @@ class DynamicManager:
         self.root = root
         self.back_callback = back_callback
         self.json_file = "dynamic_manager.json"
-        self.bg_color = "#e13974"
+        self.bg_color = self.get_dominant_color("bg.png")  # Dynamically set bg_color
         self.data = self.load_json()
+
+    def get_dominant_color(self, image_path):
+        """Extract the predominant color from an image."""
+        try:
+            image = Image.open(image_path)
+            image = image.resize((1, 1))  # Resize to 1x1 to get the average color
+            dominant_color = image.getpixel((0, 0))
+            return f"#{dominant_color[0]:02x}{dominant_color[1]:02x}{dominant_color[2]:02x}"
+        except Exception as e:
+            print(f"Error extracting dominant color: {e}")
+            return "#e13974"  # Default fallback color
 
     def load_json(self):
         try:
@@ -97,7 +108,7 @@ class DynamicManager:
             original_image = Image.open("left-arrow.png")
             resized_image = original_image.resize((20, 20), Image.Resampling.LANCZOS)
             back_arrow_image = ImageTk.PhotoImage(resized_image)
-            self.back_button = tk.Button(self.root, image=back_arrow_image, command=self.exit_dynamic_manager, bg="lightgray", bd=0, highlightthickness=0)
+            self.back_button = tk.Button(self.root, image=back_arrow_image, command=self.exit_dynamic_manager, bg=self.bg_color, bd=0, highlightthickness=0)
             self.back_button.image = back_arrow_image  # Keep a reference to avoid garbage collection
             self.back_button.place(x=10, y=10)
         else:

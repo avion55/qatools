@@ -2,10 +2,10 @@
     "chest_custom_keys": [
         "silver",
         "golden",
-        "brown"
+        "bronze"
     ],
     "dr_custom_keys": [
-        "dr-puzzle",
+        "dr-placeholder",
         "dr-tea-time",
         "dr-whatever"
     ]

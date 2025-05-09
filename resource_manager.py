@@ -1,16 +1,27 @@
 import tkinter as tk
 import json
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageStat  # Add this import for color analysis
 import os
 
 class ResourceManager:
     def __init__(self, root, back_callback):
         self.root = root
         self.back_callback = back_callback
-        self.bg_color = "#e13974"
+        self.bg_color = self.get_dominant_color("bg.png")  # Dynamically set bg_color
         self.root.configure(bg=self.bg_color)
         self.resources = self.load_resources()
         self.create_ui()
+
+    def get_dominant_color(self, image_path):
+        """Extract the predominant color from an image."""
+        try:
+            image = Image.open(image_path)
+            image = image.resize((1, 1))  # Resize to 1x1 to get the average color
+            dominant_color = image.getpixel((0, 0))
+            return f"#{dominant_color[0]:02x}{dominant_color[1]:02x}{dominant_color[2]:02x}"
+        except Exception as e:
+            print(f"Error extracting dominant color: {e}")
+            return self.bg_color  # Default fallback color
 
     def load_resources(self):
         try:
@@ -55,7 +66,7 @@ class ResourceManager:
             original_image = Image.open("left-arrow.png")
             resized_image = original_image.resize((20, 20), Image.Resampling.LANCZOS)
             back_arrow_image = ImageTk.PhotoImage(resized_image)
-            self.back_button = tk.Button(self.root, image=back_arrow_image, command=self.back_callback, bg="lightgray", bd=0, highlightthickness=0)
+            self.back_button = tk.Button(self.root, image=back_arrow_image, command=self.back_callback, bg=self.bg_color, bd=0, highlightthickness=0)
             self.back_button.image = back_arrow_image  # Keep a reference to avoid garbage collection
             self.back_button.place(x=10, y=10)
         else:
@@ -67,26 +78,32 @@ class ResourceManager:
 
         # Resources
         for resource, value in self.resources.items():
-            frame = tk.Frame(self.root, bg=self.bg_color, bd=0, highlightthickness=0)
-            frame.pack(fill="x", padx=10, pady=5)
+            outer_frame = tk.Frame(self.root, bg="black", bd=0, highlightthickness=0)  # Outer frame for black border
+            outer_frame.pack(fill="x", padx=22, pady=5)  # Slightly increase padding for a larger border
+
+            frame = tk.Frame(outer_frame, bg=self.bg_color, bd=0, highlightthickness=0)  # Inner frame for resource content
+            frame.pack(fill="x", padx=1, pady=1)  # Padding to create the border effect
 
             var = tk.BooleanVar(value=self.checkbox_states.get(resource, True))
             checkbox = tk.Checkbutton(frame, text=resource, variable=var, command=lambda r=resource, v=var: self.toggle_resource(r, v),
-                                      bg=self.bg_color, activebackground=self.bg_color, selectcolor=self.bg_color)
-            checkbox.pack(side="left", padx=5)
-            self.checkboxes[resource] = checkbox
-            self.checkbox_vars[resource] = var
+                                      bg=self.bg_color, activebackground=self.bg_color, selectcolor=self.bg_color, fg="white")
+            checkbox.grid(row=0, column=0, padx=5, sticky="w")  # Align checkbox to the left
 
             max_value = 100 if resource != "coins" else 1000000
             slider = tk.Scale(frame, from_=1, to=max_value, orient="horizontal", length=200,
-                              bg=self.bg_color, troughcolor="#f175a2", highlightthickness=0, bd=0)
+                              bg=self.bg_color, troughcolor=self.bg_color, highlightthickness=0, bd=0, fg="white")
             slider.set(value)
-            slider.pack(side="right")
+            slider.grid(row=0, column=1, padx=5, pady=(0, 10), sticky="e")  # Add padding to move slider up
             self.sliders[resource] = slider
 
+            frame.grid_columnconfigure(1, weight=1)  # Ensure proper centering of the slider
+
         # Save button
-        save_button = tk.Button(self.root, text="Save", command=self.save_resources, bg="green", fg="white", width=20, height=2, bd=0, highlightthickness=0)
-        save_button.pack(pady=10)
+        save_button_frame = tk.Frame(self.root, bg="black", bd=0, highlightthickness=0)  # Outer frame for black border
+        save_button_frame.pack(pady=12)  # Add padding around the save button
+
+        save_button = tk.Button(save_button_frame, text="Save", command=self.save_resources, bg=self.bg_color, fg="white", width=20, height=2, bd=0, highlightthickness=0)
+        save_button.pack(padx=2, pady=2)  # Add padding inside the black border
 
     def toggle_resource(self, resource, var):
         is_enabled = var.get()
