@@ -142,6 +142,48 @@ class App:
         quit_button.config(bg="red", fg="white")
         quit_button.pack(pady=20)
 
+        # Load links from JSON
+        try:
+            with open("links.json", "r", encoding="utf-8") as file:  # Use UTF-8 encoding to support emojis
+                links = json.load(file)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load links.json: {e}")
+            return
+
+        # Create small buttons for links
+        button_size = 50
+        total_width = (button_size * 4) + (20 * 3)  # 4 buttons + 3 spacings
+        x_offset = (self.root.winfo_width() - total_width) // 2  # Center horizontally
+        y_offset = self.root.winfo_height() - button_size - 20  # 20px margin from bottom
+        spacing = 20
+
+        for i in range(1, 5):
+            link = links.get(f"button_{i}")
+            if link:
+                button_name = f"Button {i}"  # Default name
+                if isinstance(link, dict):
+                    button_name = link.get("name", button_name)
+                    link = link.get("url", link)  # Update link if nested
+
+                button = tk.Button(
+                    self.root,
+                    text=button_name,
+                    command=lambda url=link: self.open_link(url),
+                    font=("Gothic", 9),
+                    bg="#ffcc00",  # Bright yellow background for better visibility
+                    fg="black",  # Black text for contrast
+                    activebackground="#ff9900",  # Orange for active state
+                    activeforeground="white",  # White text for active state
+                    relief="raised",
+                    bd=2
+                )
+                button.place(x=x_offset, y=y_offset, width=button_size, height=button_size)
+                x_offset += button_size + spacing
+
+    def open_link(self, url):
+        import webbrowser
+        webbrowser.open(url)
+
     def on_closing(self):
         self.hide_window()
 
