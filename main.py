@@ -14,9 +14,12 @@ from resource_manager import ResourceManager
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("SmartApp")
+        self.root.title("SuperTools Alpha")
         self.root.geometry("360x640")  # Smartphone size
         self.root.resizable(False, False)  # Make it un-resizable
+
+        # Set the application icon
+        self.root.iconbitmap("superplay_icon.ico")
 
         self.is_hidden = False
 
@@ -207,13 +210,16 @@ class App:
         sys.exit()
 
     def show_tray_icon(self):
-        # Create an icon image
-        image = Image.new('RGB', (64, 64), color='black')
-        dc = ImageDraw.Draw(image)
-        dc.rectangle((0, 0, 64, 64), fill='blue')
-        dc.text((10, 20), 'App', fill='white')
+        # Create an icon image using the provided .ico file
+        tray_image = Image.open("superplay_icon.ico")
 
-        self.icon = pystray.Icon("name", image, "SmartApp", menu=None)
+        # Define the menu for the tray icon
+        menu = pystray.Menu(
+            pystray.MenuItem("Maximize(Shift+ALT+M)", self.show_window),
+            pystray.MenuItem("Quit", self.quit_app, default=True)  # Removed unsupported 'font_weight' argument
+        )
+
+        self.icon = pystray.Icon("SuperTools Alpha", tray_image, "SuperTools Alpha", menu)
         threading.Thread(target=self.icon.run, daemon=True).start()
 
     def register_hotkey(self):

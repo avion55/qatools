@@ -35,6 +35,16 @@ class CustomStringsMenu:
         upload_button = tk.Button(self.root, text="Upload TXT", command=self.upload_file, font=("Arial", 12), bg="lightblue")
         upload_button.place(x=150, y=10)
 
+        # Copy button
+        self.copy_button = tk.Button(self.root, text="Copy", command=self.copy_text, font=("Arial", 12), bg="lightblue")
+        self.copy_button.place(x=250, y=10)
+
+    def copy_text(self):
+        if self.text_widget:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.text_widget.get("1.0", "end-1c"))
+            self.root.update()
+
     def upload_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
         if not file_path:
@@ -54,6 +64,10 @@ class CustomStringsMenu:
         self.buttons.clear()
         if self.text_widget:
             self.text_widget.destroy()
+
+        # Ensure the copy button remains visible
+        if hasattr(self, 'copy_button') and self.copy_button:
+            self.copy_button.place(x=250, y=10)
 
         # Parse content
         categories = {}
