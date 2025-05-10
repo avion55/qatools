@@ -3,16 +3,16 @@ from tkinter import messagebox
 from PIL import Image, ImageDraw, ImageTk
 from infi.systray import SysTrayIcon
 from pynput import keyboard
+from settings import SettingsMenu
+from resource_manager import ResourceManager
+from syntaxes import SyntaxMenu
+from album import AlbumMenu
+from custom_strings import CustomStringsMenu
 import threading
 import sys
 import json
 import os
-from syntaxes import SyntaxMenu
-from settings import SettingsMenu
-from album import AlbumMenu
-from resource_manager import ResourceManager
-from random_menu import RandomMenu
-
+import socket  # Add socket to implement a single-instance check
 
 
 class App:
@@ -224,18 +224,31 @@ class App:
         webbrowser.open(url)
 
     def on_closing(self):
-        self.hide_window()
+        """Handle the close button (X) event to minimize the app."""
+        if not self.is_closing:  # Ensure the app is not in the process of shutting down
+            self.hide_window()  # Minimize the app to the system tray
+        else:
+            print("App is already in the process of shutting down.")
 
     def hide_window(self):
-        self.is_hidden = True
-        self.root.withdraw()
-        self.show_tray_icon()
+        """Minimize the app to the system tray."""
+        if not self.is_hidden:  # Prevent redundant calls to minimize
+            self.is_hidden = True
+            self.root.withdraw()
+            self.show_tray_icon()
+        else:
+            print("App is already minimized.")
 
-    def show_window(self):
-        self.is_hidden = False
-        self.root.deiconify()
+    def show_window(self, systray=None):
+        """Restore the app window."""
+        if self.is_hidden:  # Only restore if the app is currently hidden
+            self.is_hidden = False
+            self.root.deiconify()
+        else:
+            print("App is already visible.")
 
     def quit_app(self, systray=None):
+        """Quit the application gracefully."""
         if self.is_closing:  # Check if the application is already shutting down
             return
         self.is_closing = True  # Set the flag to indicate shutdown is in progress
@@ -260,9 +273,14 @@ class App:
         os._exit(0)  # Use os._exit to avoid thread join issues
 
     def show_tray_icon(self):
+        """Show the system tray icon."""
+        if hasattr(self, 'systray') and self.systray is not None:
+            print("Tray icon is already running.")
+            return  # Prevent creating multiple tray icons
+
         # Define the menu options for the tray icon
         menu_options = (
-            ("Maximize(Shift+ALT+M)", None, lambda systray: self.show_window()),
+            ("Maximize(Shift+ALT+M)", None, self.show_window),  # Use the same method for the tray icon
         )
 
         # Define the tray icon
@@ -278,8 +296,11 @@ class App:
         self.systray.on_left_click = on_left_click
 
         # Start the tray icon in a separate thread
-        self.tray_thread = threading.Thread(target=self.systray.start, daemon=True)
-        self.tray_thread.start()
+        if not hasattr(self, 'tray_thread') or not self.tray_thread.is_alive():
+            self.tray_thread = threading.Thread(target=self.systray.start, daemon=True)
+            self.tray_thread.start()
+        else:
+            print("Tray icon thread is already running.")
 
     def register_hotkey(self):
         def on_press(key):
@@ -291,7 +312,7 @@ class App:
                 elif hasattr(key, 'char') and key.char.lower() == 'm':
                     if getattr(self, 'alt_pressed', False) and getattr(self, 'shift_pressed', False):
                         if self.is_hidden:
-                            self.show_window()
+                            self.show_window()  # Call the same method as the tray icon
             except Exception:
                 pass
 
@@ -306,7 +327,22 @@ class App:
         listener.start()
 
 
+def is_already_running():
+    """Check if another instance of the app is already running."""
+    try:
+        # Create a socket to bind to a specific port
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("127.0.0.1", 65432))  # Use a specific port for the app
+        return False  # No other instance is running
+    except OSError:
+        return True  # Another instance is already running
+
+
 if __name__ == "__main__":
+    if is_already_running():
+        print("Another instance of the app is already running.")
+        sys.exit(0)  # Exit if another instance is detected
+
     root = tk.Tk()
     root.configure(bg="#e13974")  # Or the pink hex from your image
     app = App(root)
