@@ -1,16 +1,28 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(
-    ['main.py'],
+    ['main.py'],  # Entry point of your program
     pathex=[],
     binaries=[],
-    datas=[('bg.png', '.'), ('*.json', '.')],
+    datas=[
+        ('bg.png', '.'), 
+        ('left-arrow.png', '.'), 
+        ('superplay_icon.ico', '.'), 
+        ('packs.json', '.'), 
+        ('resources.json', '.'), 
+        ('links.json', '.'), 
+        ('packs.json', '.'), 
+        ('filtered_packs.json', '.'), 
+        ('dynamic_manager.json', '.')
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['grp', 'posix', 'resource', 'fcntl', 'termios', 'multiprocessing', 'readline', 'setuptools', 'scipy', 'torch', 'matplotlib', 'IPython'],
+    excludes=[
+        'grp', 'posix', 'resource', 'fcntl', 'termios', 'multiprocessing', 
+        'readline', 'setuptools', 'scipy', 'torch', 'matplotlib', 'IPython'
+    ],
     noarchive=False,
     optimize=0,
 )
@@ -35,4 +47,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='superplay_icon.ico',  # Icon for the .exe
 )

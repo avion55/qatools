@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageDraw, ImageTk
-import pystray
+from infi.systray import SysTrayIcon
 from pynput import keyboard
 import threading
 import sys
@@ -12,6 +12,8 @@ from settings import SettingsMenu
 from album import AlbumMenu
 from resource_manager import ResourceManager
 from random_menu import RandomMenu
+
+
 
 class App:
     def __init__(self, root):
@@ -33,6 +35,7 @@ class App:
         self.root.iconbitmap("superplay_icon.ico")
 
         self.is_hidden = False
+        self.is_closing = False  # Flag to prevent multiple shutdowns
 
         # Set the background image
         self.set_background()
@@ -231,29 +234,52 @@ class App:
     def show_window(self):
         self.is_hidden = False
         self.root.deiconify()
-        self.icon.stop()
 
-    def quit_app(self):
+    def quit_app(self, systray=None):
+        if self.is_closing:  # Check if the application is already shutting down
+            return
+        self.is_closing = True  # Set the flag to indicate shutdown is in progress
+
         try:
-            if hasattr(self, 'icon'):
-                self.icon.stop()
-        except Exception:
-            pass
-        self.root.destroy()
-        sys.exit()
+            # Signal the tray icon thread to exit gracefully
+            if hasattr(self, 'systray') and self.systray is not None:
+                # Shutdown the systray in a separate thread to avoid joining the current thread
+                threading.Thread(target=self.systray.shutdown, daemon=True).start()
+                self.systray = None
+        except Exception as e:
+            print(f"Error shutting down systray: {e}")
+
+        try:
+            # Destroy the main application window
+            if self.root is not None:
+                self.root.destroy()
+        except Exception as e:
+            print(f"Error destroying root window: {e}")
+
+        # Exit the application
+        os._exit(0)  # Use os._exit to avoid thread join issues
 
     def show_tray_icon(self):
-        # Create an icon image using the provided .ico file
-        tray_image = Image.open("superplay_icon.ico")
-
-        # Define the menu for the tray icon
-        menu = pystray.Menu(
-            pystray.MenuItem("Maximize(Shift+ALT+M)", self.show_window),
-            pystray.MenuItem("Quit", self.quit_app, default=True)  # Removed unsupported 'font_weight' argument
+        # Define the menu options for the tray icon
+        menu_options = (
+            ("Maximize(Shift+ALT+M)", None, lambda systray: self.show_window()),
         )
 
-        self.icon = pystray.Icon("SuperTools Alpha", tray_image, "SuperTools Alpha", menu)
-        threading.Thread(target=self.icon.run, daemon=True).start()
+        # Define the tray icon
+        self.systray = SysTrayIcon(
+            "superplay_icon.ico", "SuperTools Alpha", menu_options, default_menu_index=1, on_quit=self.quit_app
+        )
+
+        # Override the left-click behavior to block both single and double left-click events
+        def on_left_click(systray):
+            if not self.is_closing:  # Prevent interaction if shutdown is in progress
+                pass  # Ignore both single and double left-click events
+
+        self.systray.on_left_click = on_left_click
+
+        # Start the tray icon in a separate thread
+        self.tray_thread = threading.Thread(target=self.systray.start, daemon=True)
+        self.tray_thread.start()
 
     def register_hotkey(self):
         def on_press(key):
